@@ -6,7 +6,7 @@ import { EventCard } from '../components/events/EventCard';
 import { useAuthStore } from '@store/authStore';
 import { MOCK_EVENTS, PROVINCES } from '../lib/mockData';
 import { toDate } from '@utils/formatters';
-import type { Event } from '@types/event.types';
+import type { Event } from '@models/event.types';
 
 const PRICE_OPTS = [
   { id: 'all', label: 'Any price' },

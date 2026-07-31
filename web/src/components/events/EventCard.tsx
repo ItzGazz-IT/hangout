@@ -2,7 +2,7 @@ import React from 'react';
 import { Heart, MapPin, Calendar } from 'lucide-react';
 import { getCategoryById } from '../../lib/categories';
 import { formatEventDate, formatPrice } from '@utils/formatters';
-import type { Event } from '@types/event.types';
+import type { Event } from '@models/event.types';
 
 interface EventCardProps {
   event: Event;

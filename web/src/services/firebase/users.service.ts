@@ -1,6 +1,6 @@
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@config/firebase';
-import type { UserProfile } from '@types/user.types';
+import type { UserProfile } from '@models/user.types';
 
 export const usersService = {
   async update(uid: string, data: Partial<UserProfile>): Promise<void> {

@@ -228,9 +228,9 @@ export default function EventPage() {
         eventBannerUrl: event.bannerUrl,
         eventStartDate: event.startDate,
         venueName: event.venueName,
-        city: event.city,
+        city: event.city ?? '',
         tierSelections: [{ tier: activeTier ?? { id: 'general', name: 'General', price: 0, currency: 'ZAR', capacity: event.totalCapacity, sold: event.totalBooked }, quantity: qty }],
-        paymentProvider: event.isFree ? 'free' : undefined,
+        ...(event.isFree ? { paymentProvider: 'free' as const } : {}),
       });
       setBookingStatus('done');
     } catch (err: any) {
@@ -345,9 +345,9 @@ export default function EventPage() {
         </div>
 
         {/* Tags */}
-        {event.tags?.length > 0 && (
+        {!!event.tags?.length && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {event.tags.map((tag) => (
+            {event.tags?.map((tag) => (
               <span key={tag} className="bg-surface border border-app-border text-text-secondary text-[11px] font-semibold px-3 py-1.5 rounded-full">
                 #{tag}
               </span>
@@ -466,7 +466,7 @@ export default function EventPage() {
           eventDate={formatEventDate(event.startDate)}
           eventStartMs={toDate(event.startDate).getTime()}
           venueName={event.venueName}
-          city={event.city}
+          city={event.city ?? ''}
           tierName={activeTier.name}
           tierPrice={activeTier.price}
           qty={qty}

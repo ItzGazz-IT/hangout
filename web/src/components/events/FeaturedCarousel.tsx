@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Star, Calendar, MapPin } from 'lucide-react';
 import { getCategoryById } from '../../lib/categories';
 import { formatEventDate, formatPrice } from '@utils/formatters';
-import type { Event } from '@types/event.types';
+import type { Event } from '@models/event.types';
 
 interface FeaturedCarouselProps {
   events: Event[];

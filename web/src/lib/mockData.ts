@@ -1,4 +1,4 @@
-import type { Event } from '@types/event.types';
+import type { Event } from '@models/event.types';
 
 // Helper: fake Firestore Timestamp from JS Date
 // Cast Date as `any` so it passes the `instanceof Date` branch in toDate()

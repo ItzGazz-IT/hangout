@@ -1,13 +1,18 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@config/firebase';
+import type { TicketTier } from '@models/event.types';
+import type { Timestamp } from 'firebase/firestore';
 
 export interface CreateBookingInput {
   eventId: string;
   userId: string;
-  tierId: string;
-  tierName: string;
-  qty: number;
-  totalPrice: number;
+  eventTitle: string;
+  eventBannerUrl: string;
+  eventStartDate: Timestamp | Date;
+  venueName: string;
+  city?: string;
+  tierSelections: Array<{ tier: TicketTier; quantity: number }>;
+  paymentProvider?: 'free';
 }
 
 export const bookingsService = {

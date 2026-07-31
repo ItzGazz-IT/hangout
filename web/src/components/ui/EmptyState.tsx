@@ -1,7 +1,6 @@
-import React from 'react';
-import { Heart, Ticket, Bell, Search } from 'lucide-react';
+import { Heart, Ticket, Bell, Search, type LucideIcon } from 'lucide-react';
 
-const iconMap: Record<string, React.ComponentType<{ size: number; className?: string }>> = {
+const iconMap: Record<string, LucideIcon> = {
   'heart-outline': Heart,
   'ticket-outline': Ticket,
   'notifications-off-outline': Bell,

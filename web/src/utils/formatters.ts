@@ -36,10 +36,11 @@ export function formatShortDate(value: Timestamp | Date | number | null | undefi
 }
 
 /** Format ZAR price from cents. 0 → "Free", 18000 → "R 180" */
-export function formatPrice(cents: number): string {
+export function formatPrice(cents: number, currency = 'ZAR'): string {
   if (!cents || cents <= 0) return 'Free';
   const rands = cents / 100;
-  return `R ${rands % 1 === 0 ? rands.toFixed(0) : rands.toFixed(2)}`;
+  const symbol = currency === 'ZAR' ? 'R' : currency;
+  return `${symbol} ${rands % 1 === 0 ? rands.toFixed(0) : rands.toFixed(2)}`;
 }
 
 /** Return capacity used as a 0–100 percentage */

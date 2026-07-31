@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@config/firebase';
-import type { UserProfile, UserRole } from '@types/user.types';
+import type { UserProfile, UserRole } from '@models/user.types';
 
 export const authService = {
   /** Register a new user with email + password */

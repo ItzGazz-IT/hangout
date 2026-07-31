@@ -1,9 +1,10 @@
 import React from 'react';
 import { EVENT_CATEGORIES } from '../../lib/categories';
+import type { EventCategory } from '@models/event.types';
 
 interface CategoryFilterProps {
-  selected: string | null;
-  onSelect: (id: string | null) => void;
+  selected: EventCategory | null;
+  onSelect: (id: EventCategory | null) => void;
 }
 
 export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
@@ -23,7 +24,7 @@ export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
       {EVENT_CATEGORIES.map((cat) => (
         <button
           key={cat.id}
-          onClick={() => onSelect(selected === cat.id ? null : cat.id)}
+          onClick={() => onSelect(selected === cat.id ? null : cat.id as EventCategory)}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold transition-all duration-200 ${
             selected === cat.id
               ? 'text-white shadow-lg scale-[1.04]'

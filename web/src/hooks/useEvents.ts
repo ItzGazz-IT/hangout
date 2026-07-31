@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Event } from '@types/event.types';
+import type { Event } from '@models/event.types';
 import type { EventFilters } from '@store/eventsStore';
 import { MOCK_EVENTS, MOCK_FEATURED } from '../lib/mockData';
 import { isDemoMode } from '../lib/demoMode';

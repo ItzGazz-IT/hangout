@@ -1,4 +1,4 @@
-import type { UserProfile } from '@types/user.types';
+import type { UserProfile } from '@models/user.types';
 
 export const DEMO_STORAGE_KEY = 'hangout_demo_mode';
 

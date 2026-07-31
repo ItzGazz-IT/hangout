@@ -13,7 +13,10 @@ export type EventCategory =
   | 'family'
   | 'tech'
   | 'fashion'
-  | 'outdoor';
+  | 'outdoor'
+  | 'festivals'
+  | 'corporate'
+  | 'social';
 
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed';
 

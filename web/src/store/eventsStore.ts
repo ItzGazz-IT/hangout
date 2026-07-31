@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EventCategory } from '@types/event.types';
+import type { EventCategory } from '@models/event.types';
 
 export interface EventFilters {
   category: EventCategory | null;

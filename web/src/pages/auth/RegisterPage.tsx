@@ -7,7 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { GradientButton } from '../../components/ui/GradientButton';
 import { authService } from '@services/firebase/auth.service';
 import { registerSchema, type RegisterFormData } from '@utils/validators';
-import type { UserRole } from '@types/user.types';
+import type { UserRole } from '@models/user.types';
 
 type RoleOption = { value: UserRole; icon: React.ElementType; title: string; desc: string; accent: string };
 

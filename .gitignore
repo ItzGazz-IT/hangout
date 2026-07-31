@@ -1,0 +1,6 @@
+web/node_modules/
+web/dist/
+web/.env
+web/.vite.pid
+web/*.log
+

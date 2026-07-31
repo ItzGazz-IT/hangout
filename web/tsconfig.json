@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@config/firebase": ["src/lib/firebase.ts"],
+      "@constants/categories": ["src/lib/categories.ts"],
+      "@services/notifications/push.service": ["src/lib/pushStub.ts"],
+      "@config/*": ["../src/config/*"],
+      "@services/*": ["../src/services/*"],
+      "@store/*": ["../src/store/*"],
+      "@types/*": ["../src/types/*"],
+      "@utils/*": ["../src/utils/*"],
+      "@constants/*": ["../src/constants/*"],
+      "@schemas/*": ["../src/schemas/*"],
+      "@hooks/*": ["../src/hooks/*"],
+      "@hooks": ["../src/hooks/index.ts"],
+      "@components/*": ["src/components/*"]
+    }
+  },
+  "include": ["src", "../src/**/*.ts"]
+}

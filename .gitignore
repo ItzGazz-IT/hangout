@@ -3,4 +3,4 @@ web/dist/
 web/.env
 web/.vite.pid
 web/*.log
-
+web/*.tsbuildinfo

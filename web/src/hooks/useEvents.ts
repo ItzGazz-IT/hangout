@@ -1,54 +1,37 @@
-import { useState, useEffect } from 'react';
 import type { Event } from '@models/event.types';
 import type { EventFilters } from '@store/eventsStore';
-import { MOCK_EVENTS, MOCK_FEATURED } from '../lib/mockData';
-import { isDemoMode } from '../lib/demoMode';
+import { MOCK_FEATURED } from '../lib/mockData';
+import { getDemoEvents, useDemoStore } from '../store/demoStore';
 
-/** Featured events (pinned, sorted by featuredOrder) */
+function matchesDate(event: Event, range: EventFilters['dateRange']) {
+  if (!range) return true;
+  const start = new Date(event.startDate as Date).getTime();
+  const now = Date.now();
+  const days = range === 'today' ? 1 : range === 'weekend' ? 7 : 31;
+  return start >= now && start <= now + days * 86400000;
+}
+
 export function useFeaturedEvents() {
-  const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isDemoMode()) {
-      setFeaturedEvents(MOCK_FEATURED);
-      return;
-    }
-    // In non-demo mode, return empty — HomePage falls back to MOCK_FEATURED anyway
-    setFeaturedEvents([]);
-  }, []);
-
-  return { featuredEvents, isLoading };
+  const customEvents = useDemoStore((state) => state.customEvents);
+  const published = customEvents.filter((event) => event.status === 'published' && event.featured);
+  return { featuredEvents: published.length ? published : MOCK_FEATURED, isLoading: false };
 }
 
-/** Feed events filtered by EventFilters */
 export function useFeedEvents(filters: EventFilters) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isDemoMode()) {
-      setEvents(MOCK_EVENTS);
-      return;
-    }
-    setEvents([]);
-  }, [filters]);
-
-  const loadMore = () => {};
-
-  return { events, isLoading, loadMore };
+  const customEvents = useDemoStore((state) => state.customEvents);
+  const events = getDemoEvents(customEvents).filter((event) => {
+    if (event.status !== 'published') return false;
+    if (filters.category && event.category !== filters.category) return false;
+    if (filters.isFree !== null && event.isFree !== filters.isFree) return false;
+    if (filters.province && event.province !== filters.province) return false;
+    if (filters.city && event.city !== filters.city) return false;
+    return matchesDate(event, filters.dateRange);
+  });
+  return { events, isLoading: false, loadMore: () => undefined };
 }
 
-/** Single event by ID */
 export function useEventDetail(id: string) {
-  const [event, setEvent] = useState<Event | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    const found = MOCK_EVENTS.find((e) => e.id === id) ?? null;
-    setEvent(found);
-  }, [id]);
-
-  return { event, isLoading };
+  const customEvents = useDemoStore((state) => state.customEvents);
+  const event = getDemoEvents(customEvents).find((item) => item.id === id) ?? null;
+  return { event, isLoading: false };
 }

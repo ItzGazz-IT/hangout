@@ -29,6 +29,7 @@ export function EventCard({ event, onPress, onSave, isSaved = false, compact = f
       <img
         src={event.bannerUrl || 'https://placehold.co/800x440/11C5C9/FFFFFF?text=HangOut'}
         alt={event.title}
+        onError={(e) => { const image = e.currentTarget; image.onerror = null; image.src = 'https://placehold.co/800x440/11C5C9/FFFFFF?text=HangOut'; }}
         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
       />
 

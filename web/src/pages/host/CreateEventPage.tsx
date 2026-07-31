@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tag, MapPin, Calendar, Ticket, Plus, X, CheckCircle2, ChevronDown, ImagePlus } from 'lucide-react';
 import { PROVINCES } from '../../lib/mockData';
+import { useDemoStore } from '../../store/demoStore';
+import type { EventCategory, TicketTier } from '../../types/event.types';
 
 const CATEGORIES = [
   { id: 'nightlife', label: 'Nightlife', emoji: '🌃' },
@@ -31,6 +33,8 @@ export default function CreateEventPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const addEvent = useDemoStore((state) => state.addEvent);
 
   // Step 1 — Details
   const [title, setTitle] = useState('');
@@ -63,6 +67,25 @@ export default function CreateEventPage() {
 
   const steps = ['Details', 'Location', 'Tickets'];
 
+  const submitEvent = () => {
+    if (!title.trim() || !description.trim() || !category || !province || !city || !venueName.trim() || !startDate || !totalCapacity) {
+      setError('Please complete all required fields before submitting.');
+      return;
+    }
+    const capacity = Number(totalCapacity);
+    const parsedTiers: TicketTier[] = isFree
+      ? [{ id: 'free', name: 'Free RSVP', price: 0, currency: 'ZAR', capacity, sold: 0 }]
+      : tiers.map((tier, index) => ({ id: `tier-${index + 1}`, name: tier.name || `Tier ${index + 1}`, price: Math.round(Number(tier.price || 0) * 100), currency: 'ZAR', capacity: Number(tier.capacity || capacity), sold: 0 }));
+    addEvent({
+      title: title.trim(), description: description.trim(), category: category as EventCategory,
+      bannerUrl: bannerUrl.trim() || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1200&q=85&auto=format&fit=crop',
+      province, city, venueName: venueName.trim(), address: address.trim(),
+      startDate: new Date(startDate), endDate: endDate ? new Date(endDate) : new Date(new Date(startDate).getTime() + 3 * 3600000),
+      totalCapacity: capacity, isFree, ticketTiers: parsedTiers,
+    });
+    setSubmitted(true);
+  };
+
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center px-6 py-20 text-center min-h-[60vh]">
@@ -87,6 +110,7 @@ export default function CreateEventPage() {
   return (
     <div className="pb-8">
       <div className="max-w-2xl mx-auto">
+      {error && <div className="mx-4 mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-red-600 text-sm font-bold">{error}</div>}
 
       {/* Header */}
       <div className="px-4 pt-6 pb-4">
@@ -353,7 +377,7 @@ export default function CreateEventPage() {
             </button>
             <button
               type="button"
-              onClick={() => setSubmitted(true)}
+              onClick={submitEvent}
               className="flex-1 py-3.5 bg-gradient-to-r from-secondary to-orange-400 text-white font-black rounded-2xl shadow-lg shadow-secondary/25 hover:opacity-90 transition-opacity"
             >
               Submit for Review ✓

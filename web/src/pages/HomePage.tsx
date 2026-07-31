@@ -9,6 +9,7 @@ import { useFeaturedEvents, useFeedEvents } from '@hooks/useEvents';
 import { useAuthStore } from '@store/authStore';
 import { useEventsStore } from '@store/eventsStore';
 import { MOCK_EVENTS, MOCK_FEATURED, PROVINCES } from '../lib/mockData';
+import { useDemoStore } from '../store/demoStore';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -61,7 +62,9 @@ export default function HomePage() {
     return list;
   }, [allEvents, selectedProvince, selectedCity, filters.category, searchQuery]);
 
-  const isSaved = (id: string) => !!user?.savedEvents?.includes(id);
+  const savedEventIds = useDemoStore((state) => state.savedEventIds);
+  const toggleSaved = useDemoStore((state) => state.toggleSaved);
+  const isSaved = (id: string) => savedEventIds.includes(id);
 
   const requireAuth = (action: () => void) => {
     if (!isAuthenticated) { navigate('/login'); return; }
@@ -299,7 +302,7 @@ export default function HomePage() {
               key={event.id}
               event={event}
               onPress={() => navigate(`/event/${event.id}`)}
-              onSave={() => requireAuth(() => {})}
+              onSave={() => requireAuth(() => toggleSaved(event.id))}
               isSaved={isSaved(event.id)}
             />
           ))}

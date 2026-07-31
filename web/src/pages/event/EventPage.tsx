@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Heart, Share2, MapPin, Calendar, Users, Tag, Check, Minus, Plus, X, CreditCard, CheckCircle2, Loader2, Ticket } from 'lucide-react';
+import { ChevronLeft, Heart, Share2, MapPin, Calendar, Users, Tag, Check, Minus, Plus, X, CreditCard, CheckCircle2, Loader2, Ticket, Wifi } from 'lucide-react';
 import { useEventDetail } from '@hooks/useEvents';
 import { useAuthStore } from '@store/authStore';
 import { bookingsService } from '@services/firebase/bookings.service';
@@ -8,7 +8,8 @@ import { getCategoryById } from '../../lib/categories';
 import { formatEventDate, formatPrice, capacityPercent, toDate } from '@utils/formatters';
 import { MOCK_EVENTS } from '../../lib/mockData';
 import { isDemoMode } from '../../lib/demoMode';
-import { useDemoStore, type DemoTicket } from '../../store/demoStore';
+import { useDemoStore } from '../../store/demoStore';
+import { useToastStore } from '../../store/toastStore';
 
 // ─── Payment Modal ────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ interface PaymentModalProps {
   tierPrice: number;
   qty: number;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (ticketId: string) => void;
 }
 
 function fmtCard(raw: string): string {
@@ -43,14 +44,21 @@ function PaymentModal({ eventTitle, eventBannerUrl, eventId, eventDate, eventSta
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [cardName, setCardName] = useState('');
+  const [cardFlipped, setCardFlipped] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [promoMessage, setPromoMessage] = useState('');
 
-  const total = tierPrice * qty;
+  const subtotal = tierPrice * qty;
+  const total = Math.max(0, subtotal - discount);
+  const canPay = cardNumber.replace(/\s/g, '').length === 16 && expiry.length === 5 && cvv.length >= 3 && cardName.trim().length >= 2;
 
   const handlePay = async () => {
+    if (!canPay) return;
     setStep('processing');
     await new Promise((r) => setTimeout(r, 1800));
     const qr = 'HANGOUT-TK-' + Math.random().toString(36).slice(2, 10).toUpperCase();
-    const ticket: DemoTicket = {
+    const ticket = {
       id: 'demo-' + Date.now(),
       eventId,
       eventTitle,
@@ -63,11 +71,17 @@ function PaymentModal({ eventTitle, eventBannerUrl, eventId, eventDate, eventSta
       qty,
       totalPrice: total,
       qr,
-      purchasedAt: new Date(),
     };
     addTicket(ticket);
     setStep('success');
-    setTimeout(() => { onClose(); onSuccess(); }, 2200);
+    setTimeout(() => { onClose(); onSuccess(ticket.id); }, 2200);
+  };
+
+  const applyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (code === 'HANGOUT10') { setDiscount(Math.round(subtotal * 0.1)); setPromoMessage('10% discount applied'); }
+    else if (code === 'WELCOME50') { setDiscount(Math.min(5000, subtotal)); setPromoMessage('R50 discount applied'); }
+    else { setDiscount(0); setPromoMessage(code ? 'Code is invalid or expired' : 'Enter a promo code'); }
   };
 
   const inputCls = 'w-full rounded-xl border border-app-border bg-surface px-3.5 py-3 text-text-primary text-sm font-semibold placeholder:text-text-muted focus:outline-none focus:border-primary focus:bg-white transition-colors';
@@ -139,32 +153,66 @@ function PaymentModal({ eventTitle, eventBannerUrl, eventId, eventDate, eventSta
               </div>
             </div>
 
+            {/* Live HangOut card preview */}
+            <div className="mx-auto w-full max-w-[350px]">
+              <div className="relative aspect-[1.586/1] [perspective:1200px]">
+                <div
+                  className="absolute inset-0 transition-transform duration-500 ease-out"
+                  style={{ transformStyle: 'preserve-3d', transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
+                >
+                  <div className="absolute inset-0 overflow-hidden rounded-[24px] bg-gradient-to-br from-[#08C5C9] via-primary to-[#087D91] p-5 text-white shadow-2xl shadow-primary/30" style={{ backfaceVisibility: 'hidden' }}>
+                    <div className="absolute -right-12 -top-14 h-40 w-40 rounded-full bg-white/10" />
+                    <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-secondary/25" />
+                    <div className="relative flex items-start justify-between">
+                      <div><p className="text-lg font-black tracking-tight">Hang<span className="text-secondary">Out</span></p><p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/60">Demo card</p></div>
+                      <Wifi size={23} className="rotate-90 text-white/80" />
+                    </div>
+                    <div className="relative mt-5 h-8 w-11 rounded-md border border-amber-200/80 bg-gradient-to-br from-amber-200 to-amber-500 shadow-inner"><div className="absolute inset-y-0 left-1/2 border-l border-amber-700/30"/><div className="absolute inset-x-0 top-1/2 border-t border-amber-700/30"/></div>
+                    <p className="relative mt-4 font-mono text-[clamp(15px,5vw,21px)] font-bold tracking-[0.12em] drop-shadow">{cardNumber || '•••• •••• •••• ••••'}</p>
+                    <div className="relative mt-4 flex items-end justify-between"><div className="min-w-0"><p className="text-[8px] font-bold uppercase tracking-widest text-white/55">Card holder</p><p className="truncate text-xs font-black uppercase tracking-wider">{cardName || 'YOUR NAME'}</p></div><div className="text-right"><p className="text-[8px] font-bold uppercase tracking-widest text-white/55">Expires</p><p className="font-mono text-xs font-black">{expiry || 'MM/YY'}</p></div></div>
+                  </div>
+                  <div className="absolute inset-0 overflow-hidden rounded-[24px] bg-gradient-to-br from-[#087D91] via-primary to-[#08C5C9] text-white shadow-2xl shadow-primary/30" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                    <div className="mt-7 h-11 bg-slate-950/80" />
+                    <div className="px-5 pt-5"><p className="mb-1 text-right text-[8px] font-bold uppercase tracking-widest text-white/60">Security code</p><div className="flex h-10 items-center justify-end rounded-lg bg-white px-3 font-mono font-black tracking-[0.25em] text-slate-700 shadow-inner">{cvv ? '•'.repeat(cvv.length) : '•••'}</div><div className="mt-5 flex items-center justify-between"><p className="max-w-[190px] text-[8px] leading-relaxed text-white/55">Demo payment card. No real banking information is stored or processed.</p><p className="text-base font-black">Hang<span className="text-secondary">Out</span></p></div></div>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-2 text-center text-[10px] font-semibold text-text-muted">The card updates as you type and flips for CVV</p>
+            </div>
+
             {/* Card fields */}
             <div className="flex flex-col gap-3">
               <div>
                 <label className="text-xs font-bold text-text-secondary mb-1.5 block">Card Number</label>
-                <input className={inputCls} placeholder="4111 1111 1111 1111" value={cardNumber} onChange={(e) => setCardNumber(fmtCard(e.target.value))} maxLength={19} inputMode="numeric" />
+                <input className={inputCls} placeholder="4111 1111 1111 1111" value={cardNumber} onFocus={() => setCardFlipped(false)} onChange={(e) => setCardNumber(fmtCard(e.target.value))} maxLength={19} inputMode="numeric" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-text-secondary mb-1.5 block">Expiry</label>
-                  <input className={inputCls} placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(fmtExpiry(e.target.value))} maxLength={5} inputMode="numeric" />
+                  <input className={inputCls} placeholder="MM/YY" value={expiry} onFocus={() => setCardFlipped(false)} onChange={(e) => setExpiry(fmtExpiry(e.target.value))} maxLength={5} inputMode="numeric" />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-text-secondary mb-1.5 block">CVV</label>
-                  <input className={inputCls} placeholder="123" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} maxLength={4} inputMode="numeric" type="password" />
+                  <input className={inputCls} placeholder="123" value={cvv} onFocus={() => setCardFlipped(true)} onBlur={() => setCardFlipped(false)} onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} maxLength={4} inputMode="numeric" type="password" />
                 </div>
               </div>
               <div>
                 <label className="text-xs font-bold text-text-secondary mb-1.5 block">Name on Card</label>
-                <input className={inputCls} placeholder="John Smith" value={cardName} onChange={(e) => setCardName(e.target.value)} autoComplete="cc-name" />
+                <input className={inputCls} placeholder="John Smith" value={cardName} onFocus={() => setCardFlipped(false)} onChange={(e) => setCardName(e.target.value)} autoComplete="cc-name" />
               </div>
             </div>
 
             {/* Pay button */}
+            <div>
+              <label className="text-xs font-bold text-text-secondary mb-1.5 block">Promo code</label>
+              <div className="flex gap-2"><input className={inputCls} value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoMessage(''); }} placeholder="HANGOUT10"/><button type="button" onClick={applyPromo} className="px-4 rounded-xl border border-primary text-primary text-xs font-black">Apply</button></div>
+              {promoMessage && <p className={`text-xs font-bold mt-1.5 ${discount ? 'text-green-600' : 'text-red-500'}`}>{promoMessage}</p>}
+              {discount > 0 && <div className="flex justify-between text-xs mt-2"><span className="text-text-secondary">Discount</span><span className="font-black text-green-600">−{formatPrice(discount)}</span></div>}
+            </div>
             <button
               onClick={handlePay}
-              className="w-full bg-gradient-to-r from-primary to-[#0EA8AC] text-white font-black text-base py-4 rounded-2xl shadow-xl shadow-primary/35 hover:opacity-90 transition-opacity"
+              disabled={!canPay}
+              className="w-full bg-gradient-to-r from-primary to-[#0EA8AC] text-white font-black text-base py-4 rounded-2xl shadow-xl shadow-primary/35 hover:opacity-90 transition-opacity disabled:opacity-40 disabled:shadow-none"
             >
               Pay {formatPrice(total)}
             </button>
@@ -185,20 +233,40 @@ export default function EventPage() {
   const { event: firestoreEvent } = useEventDetail(id ?? '');
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const showToast = useToastStore((s) => s.show);
 
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [bookingError, setBookingError] = useState('');
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [expanded, setExpanded] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const demoTickets = useDemoStore((s) => s.tickets);
+  const savedIds = useDemoStore((s) => s.savedEventIds);
+  const toggleSaved = useDemoStore((s) => s.toggleSaved);
 
   // Fall back to mock data
   const event = firestoreEvent ?? MOCK_EVENTS.find((e) => e.id === id) ?? null;
 
-  const alreadyBooked = !!id && demoTickets.some((t) => t.eventId === id);
+  const alreadyBooked = !!id && demoTickets.some((t) => t.eventId === id && t.status === 'confirmed');
+  const saved = !!id && savedIds.includes(id);
+
+  const shareEvent = async () => {
+    const shareData = { title: event?.title ?? 'HangOut event', text: `Check out ${event?.title ?? 'this event'} on HangOut`, url: window.location.href };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('Event link copied to your clipboard.', 'success');
+      }
+    } catch { /* Sharing was dismissed. */ }
+  };
+  const openMaps = () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event?.venueName ?? ''}, ${event?.address ?? ''}, ${event?.city ?? ''}`)}`, '_blank');
+  const addCalendar = () => {
+    if (!event) return; const start = toDate(event.startDate); const end = toDate(event.endDate);
+    const stamp = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${stamp(start)}/${stamp(end)}&location=${encodeURIComponent(`${event.venueName}, ${event.city ?? ''}`)}&details=${encodeURIComponent(event.description)}`, '_blank');
+  };
 
   if (!event) {
     return (
@@ -257,12 +325,12 @@ export default function EventPage() {
           </button>
           <div className="flex gap-2">
             <button
-              onClick={() => setSaved((v) => !v)}
+              onClick={() => id && toggleSaved(id)}
               className={`w-10 h-10 rounded-2xl backdrop-blur-md flex items-center justify-center border border-white/20 transition-colors ${saved ? 'bg-red-500/80' : 'bg-black/40 hover:bg-black/60'}`}
             >
               <Heart size={17} className={saved ? 'text-white fill-white' : 'text-white'} />
             </button>
-            <button className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 hover:bg-black/60 transition-colors">
+            <button onClick={shareEvent} className="w-10 h-10 rounded-2xl bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 hover:bg-black/60 transition-colors">
               <Share2 size={17} className="text-white" />
             </button>
           </div>
@@ -308,6 +376,10 @@ export default function EventPage() {
               <p className="text-text-primary font-bold text-sm">{event.venueName}</p>
               <p className="text-text-secondary text-xs truncate">{event.address}{event.city ? `, ${event.city}` : ''}</p>
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={addCalendar} className="py-2.5 rounded-xl bg-primary-light text-primary text-xs font-black flex items-center justify-center gap-1.5"><Calendar size={14}/> Add to calendar</button>
+            <button onClick={openMaps} className="py-2.5 rounded-xl bg-orange-50 text-secondary text-xs font-black flex items-center justify-center gap-1.5"><MapPin size={14}/> Open in Maps</button>
           </div>
         </div>
 
@@ -418,7 +490,15 @@ export default function EventPage() {
       </div>
 
       {/* ── Sticky Book CTA ── */}
-      <div className="fixed bottom-[74px] left-0 right-0 px-4 z-50">
+      {user?.role === 'admin' && (
+        <div className="fixed bottom-[74px] left-0 right-0 px-4 z-50">
+          <div className="max-w-xl mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-4 text-center">
+            <p className="font-black text-sm">Admin preview mode</p>
+            <p className="text-white/60 text-xs mt-1">Return to the Admin Dashboard to approve or reject this event.</p>
+          </div>
+        </div>
+      )}
+      {user?.role !== 'admin' && <div className="fixed bottom-[74px] left-0 right-0 px-4 z-50">
         <div className="bg-white/96 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/15 border border-app-border px-5 py-4">
           {(alreadyBooked || bookingStatus === 'done') && (
             <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-2xl px-4 py-2.5 mb-3">
@@ -455,10 +535,10 @@ export default function EventPage() {
           </div>
           {bookingError && <p className="text-red-500 text-xs font-bold mt-2 text-center">{bookingError}</p>}
         </div>
-      </div>
+      </div>}
 
       {/* ── Demo Payment Modal ── */}
-      {showPayment && activeTier && (
+      {user?.role !== 'admin' && showPayment && activeTier && (
         <PaymentModal
           eventTitle={event.title}
           eventBannerUrl={event.bannerUrl}
@@ -471,7 +551,7 @@ export default function EventPage() {
           tierPrice={activeTier.price}
           qty={qty}
           onClose={() => setShowPayment(false)}
-          onSuccess={() => setBookingStatus('done')}
+          onSuccess={(ticketId) => { setBookingStatus('done'); navigate(`/booking/${ticketId}`); }}
         />
       )}
 

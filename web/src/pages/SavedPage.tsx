@@ -3,21 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, LogIn, Compass } from 'lucide-react';
 import { EventCard } from '../components/events/EventCard';
 import { useAuthStore } from '@store/authStore';
-import { MOCK_EVENTS } from '../lib/mockData';
-
-// Demo: a handful of events pre-saved for guest view
-const DEMO_SAVED_IDS = ['mock-1', 'mock-3', 'mock-gp-1', 'mock-kzn-1'];
+import { getDemoEvents, useDemoStore } from '../store/demoStore';
 
 export default function SavedPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [savedIds, setSavedIds] = useState<string[]>(DEMO_SAVED_IDS);
+  const savedIds = useDemoStore((state) => state.savedEventIds);
+  const customEvents = useDemoStore((state) => state.customEvents);
+  const toggle = useDemoStore((state) => state.toggleSaved);
   const [activeTab, setActiveTab] = useState<string>('all');
 
-  const toggle = (id: string) =>
-    setSavedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-
-  const all = MOCK_EVENTS.filter((e) => savedIds.includes(e.id));
+  const all = getDemoEvents(customEvents).filter((e) => savedIds.includes(e.id));
   const filtered = activeTab === 'all' ? all : all.filter((e) => e.category === activeTab);
 
   // build tab options from saved events

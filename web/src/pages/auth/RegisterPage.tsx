@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User, Mail, Lock, Compass, CalendarPlus, Check } from 'lucide-react';
@@ -8,6 +8,8 @@ import { GradientButton } from '../../components/ui/GradientButton';
 import { authService } from '@services/firebase/auth.service';
 import { registerSchema, type RegisterFormData } from '@utils/validators';
 import type { UserRole } from '@models/user.types';
+import { useAuthStore } from '@store/authStore';
+import { setDemoMode, setDemoRole } from '../../lib/demoMode';
 
 type RoleOption = { value: UserRole; icon: React.ElementType; title: string; desc: string; accent: string };
 
@@ -30,7 +32,9 @@ const ROLES: RoleOption[] = [
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [role, setRole] = useState<UserRole>('user');
+  const location = useLocation();
+  const setUser = useAuthStore((state) => state.setUser);
+  const [role, setRole] = useState<UserRole>(location.state?.role === 'host' ? 'host' : 'user');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,6 +47,12 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setError('');
     try {
+      if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+        setDemoMode(role);
+        setUser({ ...setDemoRole(role), displayName: data.displayName.trim(), email: data.email.trim() });
+        navigate(role === 'host' ? '/host/dashboard' : '/onboarding');
+        return;
+      }
       await authService.registerWithEmail(data.email.trim(), data.password, data.displayName.trim(), role);
       navigate(role === 'host' ? '/host/dashboard' : '/onboarding');
     } catch (err: any) {

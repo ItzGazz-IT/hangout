@@ -7,6 +7,7 @@ import { useAuthStore } from '@store/authStore';
 import { MOCK_EVENTS, PROVINCES } from '../lib/mockData';
 import { toDate } from '@utils/formatters';
 import type { Event } from '@models/event.types';
+import { getDemoEvents, useDemoStore } from '../store/demoStore';
 
 const PRICE_OPTS = [
   { id: 'all', label: 'Any price' },
@@ -36,6 +37,9 @@ const QUICK_CATS = [
 export default function SearchPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const customEvents = useDemoStore((state) => state.customEvents);
+  const savedIds = useDemoStore((state) => state.savedEventIds);
+  const toggleSaved = useDemoStore((state) => state.toggleSaved);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState('');
@@ -58,7 +62,7 @@ export default function SearchPage() {
 
   const results = useMemo((): Event[] => {
     if (!showResults) return [];
-    let list = MOCK_EVENTS;
+    let list = getDemoEvents(customEvents).filter((event) => event.status === 'published');
 
     // Text search
     if (query.trim()) {
@@ -97,7 +101,7 @@ export default function SearchPage() {
     }
 
     return list;
-  }, [query, province, category, price, when, showResults]);
+  }, [query, province, category, price, when, showResults, customEvents]);
 
   const clearAll = () => { setQuery(''); setProvince('all'); setCategory(null); setPrice('all'); setWhen('all'); };
 
@@ -255,8 +259,8 @@ export default function SearchPage() {
                     event={event}
                     compact
                     onPress={() => navigate(`/event/${event.id}`)}
-                    onSave={() => requireAuth(() => {})}
-                    isSaved={false}
+                    onSave={() => requireAuth(() => toggleSaved(event.id))}
+                    isSaved={savedIds.includes(event.id)}
                   />
                 ))}
               </div>
@@ -305,8 +309,8 @@ export default function SearchPage() {
                   event={event}
                   compact
                   onPress={() => navigate(`/event/${event.id}`)}
-                  onSave={() => requireAuth(() => {})}
-                  isSaved={false}
+                  onSave={() => requireAuth(() => toggleSaved(event.id))}
+                  isSaved={savedIds.includes(event.id)}
                 />
               ))}
             </div>

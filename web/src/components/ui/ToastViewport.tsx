@@ -1,0 +1,4 @@
+import React from 'react';
+import { CheckCircle2, Info, XCircle, X } from 'lucide-react';
+import { useToastStore } from '../../store/toastStore';
+export function ToastViewport(){const{message,kind,clear}=useToastStore();if(!message)return null;const Icon=kind==='success'?CheckCircle2:kind==='error'?XCircle:Info;return <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-sm"><div className={`flex items-center gap-3 rounded-2xl px-4 py-3 shadow-2xl border bg-white ${kind==='error'?'border-red-200':kind==='success'?'border-green-200':'border-primary/30'}`}><Icon size={18} className={kind==='error'?'text-red-500':kind==='success'?'text-green-500':'text-primary'}/><p className="flex-1 text-sm font-bold text-text-primary">{message}</p><button onClick={clear}><X size={15} className="text-muted"/></button></div></div>}

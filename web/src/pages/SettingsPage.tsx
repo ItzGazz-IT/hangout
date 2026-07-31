@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useToastStore } from '../store/toastStore';
 
 const SETTINGS_KEY = 'hangout_settings';
 const DEFAULTS = { darkMode: false, pushNotifications: true, locationAccess: true };
@@ -26,6 +27,7 @@ function Row({ label, settingKey, settings, onChange }: { label: string; setting
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, boolean>>(loadSettings);
+  const showToast = useToastStore((state) => state.show);
 
   const handleChange = (key: string, value: boolean) => {
     const next = { ...settings, [key]: value };
@@ -64,7 +66,7 @@ export default function SettingsPage() {
             className="w-full text-left px-4 py-3.5 text-sm font-semibold hover:bg-red-50 transition-colors text-red-500"
             onClick={() => {
               if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-                alert('Please contact support@hangout.co.za to request account deletion.');
+                showToast('Contact support@hangout.co.za to request account deletion.', 'info');
               }
             }}
           >

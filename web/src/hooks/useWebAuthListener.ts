@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@store/authStore';
 import { authService } from '@services/firebase/auth.service';
-import { isDemoMode, DEMO_USER } from '../lib/demoMode';
+import { isDemoMode, getDemoUser } from '../lib/demoMode';
 
 /**
  * Web-specific auth listener.
@@ -13,7 +13,7 @@ export function useWebAuthListener(): void {
 
   useEffect(() => {
     if (isDemoMode()) {
-      setUser(DEMO_USER);
+      setUser(getDemoUser());
       return;
     }
 

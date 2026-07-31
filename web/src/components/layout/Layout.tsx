@@ -18,12 +18,13 @@ const hostTabs = [
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
-const userNavLinks = [
+const customerNavLinks = [
   { to: '/', label: 'Home', exact: true },
   { to: '/search', label: 'Explore Events' },
   { to: '/wallet', label: 'Wallet' },
-  { to: '/host/create-event', label: 'Host an Event' },
 ];
+
+const guestNavLinks = [...customerNavLinks, { to: '/host/login', label: 'Host Sign In' }];
 
 const hostNavLinks = [
   { to: '/host/dashboard', label: 'Dashboard', exact: true },
@@ -39,7 +40,7 @@ export default function Layout() {
 
   const isHost = user?.role === 'host';
   const tabs = isHost ? hostTabs : userTabs;
-  const navLinks = isHost ? hostNavLinks : userNavLinks;
+  const navLinks = isHost ? hostNavLinks : isAuthenticated ? customerNavLinks : guestNavLinks;
 
   return (
     <div className="flex flex-col h-screen bg-app-bg overflow-hidden">

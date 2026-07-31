@@ -4,6 +4,18 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('firebase')) return 'firebase';
+          if (id.includes('lucide-react') || id.includes('qrcode.react')) return 'visuals';
+          if (id.includes('react') || id.includes('zustand')) return 'react-vendor';
+          if (id.includes('date-fns')) return 'date-utils';
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       // Web-specific overrides (must come before broader aliases)

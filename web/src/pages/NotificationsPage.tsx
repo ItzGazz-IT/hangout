@@ -5,37 +5,29 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { useDemoStore } from '../store/demoStore';
 
 export default function NotificationsPage() {
-  const tickets = useDemoStore((s) => s.tickets);
-
-  const notifications = [
-    ...tickets.map((t) => ({
-      id: t.id,
-      title: 'Booking Confirmed ✓',
-      body: `Your ${t.tierName} ticket for "${t.eventTitle}" is confirmed. Check your Wallet for the QR code.`,
-      time: formatDistanceToNow(t.purchasedAt, { addSuffix: true }),
-      sortKey: t.purchasedAt.getTime(),
-    })),
-    {
-      id: 'promo-1',
-      title: 'New Events Near You 🎉',
-      body: 'Amapiano Live and 4 other events just dropped in your area.',
-      time: '1d ago',
-      sortKey: Date.now() - 86400000,
-    },
-  ].sort((a, b) => b.sortKey - a.sortKey);
+  const notifications = useDemoStore((state) => state.notifications);
+  const markRead = useDemoStore((state) => state.markNotificationsRead);
 
   return (
     <div>
       <PageHeader title="Notifications" />
-      <div className="px-4 py-4 flex flex-col gap-3">
+      <div className="px-4 py-4 flex flex-col gap-3 max-w-3xl mx-auto">
+        {notifications.some((item) => !item.read) && (
+          <button onClick={markRead} className="self-end text-primary text-xs font-black hover:underline">Mark all as read</button>
+        )}
         {notifications.length === 0 ? (
           <EmptyState title="No notifications" description="You're all caught up." icon="notifications-off-outline" />
         ) : (
-          notifications.map((item) => (
-            <div key={item.id} className="bg-card border border-app-border rounded-2xl p-4">
-              <p className="text-text-primary font-extrabold text-sm">{item.title}</p>
-              <p className="text-[#B7B7D5] text-sm mt-1.5 leading-5">{item.body}</p>
-              <p className="text-[#7D7D9D] text-xs mt-2">{item.time}</p>
+          [...notifications].sort((a, b) => b.createdAtMs - a.createdAtMs).map((item) => (
+            <div key={item.id} className={`bg-card border rounded-2xl p-4 ${item.read ? 'border-app-border' : 'border-primary/40 shadow-sm'}`}>
+              <div className="flex items-start gap-3">
+                {!item.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
+                <div>
+                  <p className="text-text-primary font-extrabold text-sm">{item.title}</p>
+                  <p className="text-text-secondary text-sm mt-1.5 leading-5">{item.body}</p>
+                  <p className="text-text-muted text-xs mt-2">{formatDistanceToNow(item.createdAtMs, { addSuffix: true })}</p>
+                </div>
+              </div>
             </div>
           ))
         )}

@@ -77,9 +77,14 @@ export default function ProfilePage() {
 
       {/* Menu */}
       <div className="bg-card border border-app-border rounded-2xl overflow-hidden mb-5">
+        {isDemoMode() && <MenuRow icon={<Settings size={17} />} label="Switch Demo Role" onClick={() => navigate('/demo')} />}
         <MenuRow icon={<Bell size={17} />} label="Notifications" onClick={() => navigate('/notifications')} />
-        <MenuRow icon={<Building2 size={17} />} label="Host Dashboard" onClick={() => navigate('/host/dashboard')} />
-        <MenuRow icon={<ShieldCheck size={17} />} label="Admin Dashboard" onClick={() => navigate('/admin/dashboard')} />
+        {user?.role === 'host' ? (
+          <MenuRow icon={<Building2 size={17} />} label="Host Dashboard" onClick={() => navigate('/host/dashboard')} />
+        ) : (
+          <MenuRow icon={<Building2 size={17} />} label="Become a Host" onClick={() => navigate('/host-access')} />
+        )}
+        {user?.role === 'admin' && <MenuRow icon={<ShieldCheck size={17} />} label="Admin Dashboard" onClick={() => navigate('/admin/dashboard')} />}
         <MenuRow icon={<HelpCircle size={17} />} label="Support" onClick={() => setShowSupport(true)} />
       </div>
 

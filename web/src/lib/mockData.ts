@@ -29,7 +29,7 @@ export const PROVINCES: Province[] = [
   { id: 'NC',   label: 'Northern Cape',  short: 'N. Cape',    emoji: '🏜️', cities: ['Kimberley', 'Upington', 'Springbok', 'De Aar'] },
 ];
 
-export const MOCK_EVENTS: Event[] = [
+const MOCK_EVENT_SEED: Event[] = [
   {
     id: 'mock-1',
     title: 'Afrobeats All Night',
@@ -856,5 +856,25 @@ export const MOCK_EVENTS: Event[] = [
     updatedAt: ts(new Date('2026-05-16')),
   },
 ];
+
+// Keep the demo calendar useful over time. Most expired seed events are rolled
+// into the next four months while a few remain in the past for history views.
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const MOCK_EVENTS: Event[] = MOCK_EVENT_SEED.map((event, index) => {
+  const start = event.startDate as Date;
+  const end = event.endDate as Date;
+  if (end.getTime() > Date.now() || index % 9 === 0) return event;
+
+  const futureDay = new Date(Date.now() + (3 + ((index * 5) % 120)) * DAY_MS);
+  futureDay.setHours(start.getHours(), start.getMinutes(), 0, 0);
+  const duration = Math.max(end.getTime() - start.getTime(), 60 * 60 * 1000);
+
+  return {
+    ...event,
+    startDate: ts(futureDay),
+    endDate: ts(new Date(futureDay.getTime() + duration)),
+  };
+});
 
 export const MOCK_FEATURED = MOCK_EVENTS.filter((e) => e.featured);

@@ -16,6 +16,7 @@ export default function WalletPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const demoTickets = useDemoStore((s) => s.tickets);
+  const cancelTicket = useDemoStore((s) => s.cancelTicket);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -168,6 +169,9 @@ export default function WalletPage() {
                   >
                     View Event Details →
                   </button>
+                  {ticket.status === 'confirmed' && !ticket.checkedInAtMs && ticket.eventStartMs > now && (
+                    <button onClick={() => window.confirm(`Cancel your ticket for ${ticket.eventTitle}?`) && cancelTicket(ticket.id)} className="w-full mt-2 py-2 text-red-500 text-xs font-bold hover:underline">Cancel demo booking</button>
+                  )}
                 </div>
               </div>
             );

@@ -1,0 +1,28 @@
+HANGOUT CLIENT DEMO
+===================
+
+Before the meeting
+------------------
+1. Make sure Node.js is installed.
+2. Double-click Start-HangOut.cmd.
+3. Keep the black HangOut window open.
+4. The role-selection page opens automatically.
+
+During the demo
+---------------
+- Customer: browse, save, book and view tickets.
+- Host: create events, manage guests and check in tickets.
+- Admin: review, approve or reject submitted events.
+
+Demo promo codes
+----------------
+HANGOUT10  - 10 percent discount
+WELCOME50  - R50 discount
+
+Demo ticket check-in code
+-------------------------
+HANGOUT-TK-A1B2C3D4
+
+When finished
+-------------
+Return to the black HangOut window and press Ctrl+C.
